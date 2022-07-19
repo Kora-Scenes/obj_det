@@ -19,10 +19,40 @@ sys.path.append('../')
 from pipeline_input import *
 from constants import *
 
+
+import warnings as wr
+
+wr.filterwarnings("ignore")
+
+import detectron2
+from detectron2.utils.logger import setup_logger
+setup_logger()
+
+# import some common libraries
+import numpy as np
+import os, json, cv2, random
+# from google.colab.patches 
+# import cv2_imshow
+
+# import some common detectron2 utilities
+from detectron2 import model_zoo
+from detectron2.engine import DefaultPredictor
+from detectron2.config import get_cfg
+from detectron2.utils.visualizer import Visualizer
+from detectron2.data import MetadataCatalog, DatasetCatalog
+
+import mlflow
+import mlflow.sklearn
+from urllib.parse import urlparse
+import logging
+
+logging.basicConfig(level=logging.WARN)
+logger = logging.getLogger(__name__)
+
 class KITTI_lemenko_interp(pipeline_dataset_interpreter):
 
 	def load_calibration(self, calib_file_name):
-		print(calib)
+		#print(calib)
 		calib = {}
 		f = open(calib_file_name, "r")
 		for line in f:
@@ -379,6 +409,7 @@ class obj_det_evaluator:
 			'fn':0		# iou==0	
 		}
 		print("obj_det_evaluator")
+
 		for image_name in tqdm(image_names_list, file=sys.__stdout__):
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
@@ -418,8 +449,35 @@ class obj_det_evaluator:
 			'iou_avg': iou_avg,
 			'confusion': yolo_metrics
 		}
+
+		model_name = ((str(self.__class__.__name__).split('_'))[-1]).capitalize()
+
+		with mlflow.start_run(run_name = model_name):
+			# mlflow.log_param("alpha", alpha)
+			# mlflow.log_param("l1_ratio", l1_ratio)
+			mlflow.log_metric("prec", prec)
+			mlflow.log_metric("recall", recall)
+			mlflow.log_metric("f1_score", f1_score)
+			mlflow.log_metric("iou_average", iou_avg)
+			# mlflow.log_metric("confusion", yolo_metrics)
+			# mlflow.log_metric(str(key),value)
+
+			tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+
+			# Model registry does not work with file store
+			if tracking_url_type_store != "file":
+
+				# Register the model
+				# There are other ways to use the Model Registry, which depends on the use case,
+				# please refer to the doc for more information:
+				# https://mlflow.org/docs/latest/model-registry.html#api-workflow
+				mlflow.sklearn.log_model(self.model, "model", registered_model_name="ElasticnetWineModel")
+			else:
+				mlflow.sklearn.log_model(self.model, "model")
+
 		print(results)
-		return results, preds
+		preds1 = preds
+		return results, preds1
 
 
 class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
@@ -528,12 +586,116 @@ class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
 		return results, preds
 
 
+class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
+	def load(self):
+		self.weights = 'dependencies/yolov3.weights'
+		self.cfg = 'dependencies/yolov3.cfg'
+		self.coco = 'dependencies/coco.names'
+		self.coco_classes = None
+		with open(self.coco,'r') as f:
+			self.coco_classes = [line.strip() for line in f.readlines()]
+		self.net = cv2.dnn.readNet(self.weights,self.cfg)
+		pass
+	def train(self):
+		pass
+	def predict(self, x: np.array) -> np.array:
+		predict_results = {
+			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
+		}
+		
+		for image_path in tqdm(x):
+			image = cv2.imread(image_path)
+			height, width = image.shape[:2]
+			height = image.shape[0]
+			width = image.shape[1]
+			self.net.setInput(cv2.dnn.blobFromImage(image,0.00392,(416,416),(0,0,0),True,crop=False))
+			person_layer_names = self.net.getLayerNames()
+			uncon_lay = self.net.getUnconnectedOutLayers()
+			if type(uncon_lay[0])==list:
+				person_output_layers = [person_layer_names[i[0] - 1] for i in uncon_lay]
+			else:
+				person_output_layers = [person_layer_names[i - 1] for i in uncon_lay]
+			person_outs = self.net.forward(person_output_layers)
+			person_class_ids, person_confidences, person_boxes =[],[],[]
+			for operson in person_outs:
+				for detection in operson:
+					scores = detection[5:]
+					class_id = np.argmax(scores)
+					confidence = scores[class_id]
+					if confidence > 0.5:
+						center_x = int(detection[0] * width)
+						center_y = int(detection[1] * height)
+						w = int(detection[2] * width)
+						h = int(detection[3] * height)
+						x = center_x -w/2
+						y = center_y - h/2
+						person_class_ids.append(class_id)
+						person_confidences.append(float(confidence))
+						person_boxes.append([x, y, w, h])
+
+			pindex = cv2.dnn.NMSBoxes(person_boxes, person_confidences, 0.5, 0.4)
+			it = 0
+			for i in pindex:
+				if type(i)==list:
+					i = i[0]
+				if person_class_ids[i]==0:
+					x = person_boxes[it][0]
+					y = person_boxes[it][1]
+					w = person_boxes[it][2]
+					h = person_boxes[it][3]
+					file_name = image_path.split('/')[-1][0:-4]
+					predict_results["xmin"] += [x]
+					predict_results["ymin"] += [y]
+					predict_results["xmax"] += [x+w]
+					predict_results["ymax"] += [y+h]
+					predict_results["confidence"] += [person_confidences[i]]
+					predict_results["name"] += [file_name]
+					predict_results["image"] += [image_path]
+					it += 1
+		predict_results = pd.DataFrame(predict_results)
+		return predict_results
+	
+
+class obj_det_pipeline_model_frcnn(obj_det_evaluator, pipeline_model):
+	def load(self):
+		self.cfg = get_cfg()
+		self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"))
+		self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 
+		self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")
+		pass
+	def train(self):
+		pass
+	def predict(self, x: np.array) -> np.array:
+		predict_results = {
+			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
+		}
+		predictor = DefaultPredictor(self.cfg)
+		for image_path in tqdm(x):
+			img = cv2.imread(image_path)
+			outputs = predictor(img)
+			v = Visualizer(img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
+			boxes = v._convert_boxes(outputs["instances"][outputs["instances"].pred_classes == 0].pred_boxes.to('cpu'))
+			for box in boxes:
+				file_name = image_path.split('/')[-1][0:-4]
+				predict_results["xmin"] += [box[0]]
+				predict_results["ymin"] += [box[1]]
+				predict_results["xmax"] += [box[2]]
+				predict_results["ymax"] += [box[3]]
+				predict_results["confidence"] += [0]
+				predict_results["name"] += [file_name]
+				predict_results["image"] += [image_path]
+		predict_results = pd.DataFrame(predict_results)
+		return predict_results
+
+
 obj_det_input = pipeline_input("obj_det", 
 	p_dataset_interpreter={
 		# 'KITTI_lemenko_interp':KITTI_lemenko_interp,
 		'karthika95-pedestrian-detection': obj_det_interp_1, 
 	}, 
 	p_model={
+		'obj_det_pipeline_model_yolov3': obj_det_pipeline_model_yolov3,
+		'obj_det_pipeline_model_frcnn':obj_det_pipeline_model_frcnn,
 		'obj_det_pipeline_model_yolov5n': obj_det_pipeline_model_yolov5n,
 		'obj_det_pipeline_model_yolov5s': obj_det_pipeline_model_yolov5s,
 		'obj_det_pipeline_model_yolov5m': obj_det_pipeline_model_yolov5m,
@@ -563,7 +725,6 @@ exported_pipeline = obj_det_input
 def get_iou(bb1, bb2):
 	"""
 	Calculate the Intersection over Union (IoU) of two bounding boxes.
-
 	Parameters
 	----------
 	bb1 : dict
@@ -574,7 +735,6 @@ def get_iou(bb1, bb2):
 		Keys: {'xmin', 'xmax', 'ymin', 'ymax'}
 		The (x, y) position is at the top left corner,
 		the (xmax, ymax) position is at the bottom right corner
-
 	Returns
 	-------
 	float
