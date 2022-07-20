@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 import sys
 sys.path.append('../')
 
-from pipeline_input import *
+from ML_Ops_Pipeline.pipeline_input import *
 from constants import *
 
 
