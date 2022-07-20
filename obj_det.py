@@ -17,7 +17,7 @@ import sys
 sys.path.append('../')
 
 from ML_Ops_Pipeline.pipeline_input import *
-from constants import *
+from ML_Ops_Pipeline.constants import *
 
 
 import warnings as wr
