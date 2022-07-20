@@ -542,7 +542,7 @@ class obj_det_pipeline_model_yolov5x(obj_det_pipeline_model):
 
 class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
 
-	def predict(self, x: dict) -> np.array:
+	def predict(self, x: dict):
 		model_names = list(x.keys())
 		image_paths = x[model_names[0]]["image"].unique()
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
