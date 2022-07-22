@@ -520,6 +520,7 @@ class yolov5x(model):
 class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 
 	def predict(self, x: dict):
+		# Ensemble predict logic
 		model_names = list(x.keys())
 		image_paths = x[model_names[0]]["image"].unique()
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
