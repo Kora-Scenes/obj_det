@@ -660,6 +660,7 @@ class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
 class obj_det_pipeline_model_frcnn(obj_det_evaluator, pipeline_model):
 	def load(self):
 		self.cfg = get_cfg()
+		# self.cfg.MODEL.DEVICE = 'cpu'
 		self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml"))
 		self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 
 		self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")
