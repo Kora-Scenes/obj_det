@@ -698,12 +698,7 @@ obj_det_input = pipeline_input("obj_det",
 	},
 	p_pipeline_streamlit_visualizer=streamlit_viz)
 
-#from depth_perception_demo import depth_input
 exported_pipeline = obj_det_input
-#all_inputs = {}
-#all_inputs[obj_det_input.get_pipeline_name()] = obj_det_input
-#all_inputs[depth_input.get_pipeline_name()] = depth_input
-
 
 #########################################################################
 
