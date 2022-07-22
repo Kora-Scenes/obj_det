@@ -497,23 +497,23 @@ class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
 		return predict_results
 
 
-class obj_det_pipeline_model_yolov5n(obj_det_pipeline_model):
+class yolov5n(obj_det_pipeline_model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5n')
 		
-class obj_det_pipeline_model_yolov5s(obj_det_pipeline_model):
+class yolov5s(obj_det_pipeline_model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
-class obj_det_pipeline_model_yolov5m(obj_det_pipeline_model):
+class yolov5m(obj_det_pipeline_model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
-class obj_det_pipeline_model_yolov5l(obj_det_pipeline_model):
+class yolov5l(obj_det_pipeline_model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
 
-class obj_det_pipeline_model_yolov5x(obj_det_pipeline_model):
+class yolov5x(obj_det_pipeline_model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5x')
 
@@ -560,7 +560,7 @@ class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
 		return results, preds
 
 
-class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
+class yolov3(obj_det_evaluator, pipeline_model):
 	def load(self):
 		self.weights = 'dependencies/yolov3.weights'
 		self.cfg = 'dependencies/yolov3.cfg'
@@ -635,7 +635,7 @@ class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
 		return predict_results
 	
 
-class obj_det_pipeline_model_frcnn(obj_det_evaluator, pipeline_model):
+class frcnn(obj_det_evaluator, pipeline_model):
 	def load(self):
 		self.cfg = get_cfg()
 		# self.cfg.MODEL.DEVICE = 'cpu'
@@ -679,13 +679,13 @@ obj_det_input = pipeline_input("obj_det",
 		'karthika95-pedestrian-detection': obj_det_interp_1, 
 	}, 
 	p_model={
-		'obj_det_pipeline_model_yolov3': obj_det_pipeline_model_yolov3,
-		'obj_det_pipeline_model_frcnn':obj_det_pipeline_model_frcnn,
-		'obj_det_pipeline_model_yolov5n': obj_det_pipeline_model_yolov5n,
-		'obj_det_pipeline_model_yolov5s': obj_det_pipeline_model_yolov5s,
-		'obj_det_pipeline_model_yolov5m': obj_det_pipeline_model_yolov5m,
-		'obj_det_pipeline_model_yolov5l': obj_det_pipeline_model_yolov5l,
-		'obj_det_pipeline_model_yolov5x': obj_det_pipeline_model_yolov5x,
+		'yolov3': yolov3,
+		'frcnn':frcnn,
+		'yolov5n': yolov5n,
+		'yolov5s': yolov5s,
+		'yolov5m': yolov5m,
+		'yolov5l': yolov5l,
+		'yolov5x': yolov5x,
 	}, 
 	p_ensembler={
 		'obj_det_pipeline_ensembler_1': obj_det_pipeline_ensembler_1
