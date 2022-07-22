@@ -464,7 +464,7 @@ class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 		
 	def train(self, x, y) -> np.array:
-		results, preds = self.evaluate(x)
+		results, preds = self.evaluate(x, y)
 		image_names_list = y["name"].unique()
 		
 		return results, preds
@@ -552,7 +552,7 @@ class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
 		return nms_res
 
 	def train(self, x, y) -> np.array:
-		results, preds = self.evaluate(x)
+		results, preds = self.evaluate(x, y)
 		image_names_list = y["name"].unique()
 		
 		return results, preds
@@ -570,7 +570,7 @@ class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
 		pass
 	
 	def train(self, x, y) -> np.array:
-		results, preds = self.evaluate(x)
+		results, preds = self.evaluate(x, y)
 		image_names_list = y["name"].unique()
 		
 		return results, preds
@@ -643,7 +643,7 @@ class obj_det_pipeline_model_frcnn(obj_det_evaluator, pipeline_model):
 		pass
 
 	def train(self, x, y) -> np.array:
-		results, preds = self.evaluate(x)
+		results, preds = self.evaluate(x, y)
 		image_names_list = y["name"].unique()
 		
 		return results, preds
