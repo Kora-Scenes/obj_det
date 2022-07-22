@@ -460,7 +460,7 @@ class obj_det_evaluator:
 		return results, preds1
 
 
-class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
+class model(obj_det_evaluator, pipeline_model):
 
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
@@ -478,7 +478,7 @@ class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
 		}
-		print("obj_det_pipeline_model: predict")
+		print("model: predict")
 		for image_path in tqdm(x, file=sys.__stdout__):
 			img = cv2.imread(image_path)
 			results = self.model(image_path)
@@ -497,27 +497,27 @@ class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
 		return predict_results
 
 
-class yolov5n(obj_det_pipeline_model):
+class yolov5n(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5n')
 		
-class yolov5s(obj_det_pipeline_model):
+class yolov5s(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
-class yolov5m(obj_det_pipeline_model):
+class yolov5m(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5m')
 
-class yolov5l(obj_det_pipeline_model):
+class yolov5l(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5l')
 
-class yolov5x(obj_det_pipeline_model):
+class yolov5x(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5x')
 
-class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
+class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 
 	def predict(self, x: dict):
 		model_names = list(x.keys())
@@ -688,7 +688,7 @@ obj_det_input = pipeline_input("obj_det",
 		'yolov5x': yolov5x,
 	}, 
 	p_ensembler={
-		'obj_det_pipeline_ensembler_1': obj_det_pipeline_ensembler_1
+		'NMS_ensemble': NMS_ensemble
 	}, 
 	p_vizualizer={
 		'iou_over_50_percent': iou_over_50_percent,
