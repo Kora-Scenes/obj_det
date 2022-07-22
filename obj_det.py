@@ -464,12 +464,9 @@ class obj_det_pipeline_model(obj_det_evaluator, pipeline_model):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 		
 	def train(self, x, y) -> np.array:
-		preds = self.predict(x)
+		results, preds = self.evaluate(x)
 		image_names_list = y["name"].unique()
 		
-		results = {
-			'training_results': 1,
-		}
 		return results, preds
 
 		
@@ -555,12 +552,9 @@ class obj_det_pipeline_ensembler_1(obj_det_evaluator, pipeline_ensembler):
 		return nms_res
 
 	def train(self, x, y) -> np.array:
-		preds = self.predict(x)
+		results, preds = self.evaluate(x)
 		image_names_list = y["name"].unique()
 		
-		results = {
-			'training_results': 0,
-		}
 		return results, preds
 
 
@@ -574,8 +568,13 @@ class obj_det_pipeline_model_yolov3(obj_det_evaluator, pipeline_model):
 			self.coco_classes = [line.strip() for line in f.readlines()]
 		self.net = cv2.dnn.readNet(self.weights,self.cfg)
 		pass
-	def train(self):
-		pass
+	
+	def train(self, x, y) -> np.array:
+		results, preds = self.evaluate(x)
+		image_names_list = y["name"].unique()
+		
+		return results, preds
+
 	def predict(self, x: np.array) -> np.array:
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
@@ -642,8 +641,13 @@ class obj_det_pipeline_model_frcnn(obj_det_evaluator, pipeline_model):
 		self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5 
 		self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Detection/faster_rcnn_X_101_32x8d_FPN_3x.yaml")
 		pass
-	def train(self):
-		pass
+
+	def train(self, x, y) -> np.array:
+		results, preds = self.evaluate(x)
+		image_names_list = y["name"].unique()
+		
+		return results, preds
+
 	def predict(self, x: np.array) -> np.array:
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
