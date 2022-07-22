@@ -448,7 +448,9 @@ class obj_det_evaluator:
 			'recall': recall,
 			'f1_score': f1_score,
 			'iou_avg': iou_avg,
-			'confusion': yolo_metrics
+			'tp': yolo_metrics['tp'],
+			'fp': yolo_metrics['fp'],
+			'fn': yolo_metrics['fn']
 		}
 
 		model_name = ((str(self.__class__.__name__).split('_'))[-1]).capitalize()
