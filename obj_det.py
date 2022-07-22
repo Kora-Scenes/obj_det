@@ -400,6 +400,7 @@ class iou_sub_10_percent(iou_sub_x_percent):
 class obj_det_evaluator:
 
 	def evaluate(self, x, y, plot=False):
+		# Common Evaluation Logic
 		preds = self.predict(x)
 		image_names_list = y["name"].unique()
 		iou_list = []
