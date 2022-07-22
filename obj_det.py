@@ -682,11 +682,11 @@ obj_det_input = pipeline_input("obj_det",
 	p_model={
 		'yolov3': yolov3,
 		'frcnn':frcnn,
-		'yolov5n': yolov5n,
-		'yolov5s': yolov5s,
-		'yolov5m': yolov5m,
+		# 'yolov5n': yolov5n,
+		# 'yolov5s': yolov5s,
+		# 'yolov5m': yolov5m,
 		'yolov5l': yolov5l,
-		'yolov5x': yolov5x,
+		# 'yolov5x': yolov5x,
 	}, 
 	p_ensembler={
 		'NMS_ensemble': NMS_ensemble
