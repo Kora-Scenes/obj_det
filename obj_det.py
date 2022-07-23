@@ -413,7 +413,7 @@ class obj_det_evaluator:
 		print("obj_det_evaluator")
 
 		for i, image_name in tqdm(enumerate(image_names_list), file=sys.__stdout__):
-			self.set_status(str(int(i*100/len(image_names_list)) + " %"))
+			self.set_status(str(int(i*100/len(image_names_list))) + " %")
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
 			for index1, lab in labels.iterrows():
@@ -482,7 +482,7 @@ class model(obj_det_evaluator, pipeline_model):
 		}
 		print("model: predict")
 		for i, image_path in tqdm(enumerate(x), file=sys.__stdout__):
-			self.set_status(str(int(i*100/len(x)) + " %"))
+			self.set_status(str(int(i*100/len(x))) + " %")
 			img = cv2.imread(image_path)
 			results = self.model(image_path)
 			df = results.pandas().xyxyn[0]
@@ -528,7 +528,7 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 		image_paths = x[model_names[0]]["image"].unique()
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
 		for i, img_path in enumerate(image_paths):
-			self.set_status(str(int(i*100/len(image_paths)) + " %"))
+			self.set_status(str(int(i*100/len(image_paths))) + " %")
 			boxes = []
 			scores = []
 			for mod_name in model_names:
@@ -588,7 +588,7 @@ class yolov3(obj_det_evaluator, pipeline_model):
 		}
 		
 		for i, image_path in tqdm(enumerate(x)):
-			self.set_status(str(int(i*100/len(x)) + " %"))
+			self.set_status(str(int(i*100/len(x))) + " %")
 			image = cv2.imread(image_path)
 			height, width = image.shape[:2]
 			height = image.shape[0]
@@ -662,7 +662,7 @@ class frcnn(obj_det_evaluator, pipeline_model):
 		}
 		predictor = DefaultPredictor(self.cfg)
 		for i, image_path in tqdm(enumerate(x)):
-			self.set_status(str(int(i*100/len(x)) + " %"))
+			self.set_status(str(int(i*100/len(x))) + " %")
 			img = cv2.imread(image_path)
 			outputs = predictor(img)
 			v = Visualizer(img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
