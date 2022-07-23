@@ -412,7 +412,8 @@ class obj_det_evaluator:
 		}
 		print("obj_det_evaluator")
 
-		for image_name in tqdm(image_names_list, file=sys.__stdout__):
+		for i, image_name in tqdm(enumerate(image_names_list), file=sys.__stdout__):
+			self.set_status(str(int(i*100/len(image_names_list)) + " %"))
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
 			for index1, lab in labels.iterrows():
@@ -480,7 +481,8 @@ class model(obj_det_evaluator, pipeline_model):
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
 		}
 		print("model: predict")
-		for image_path in tqdm(x, file=sys.__stdout__):
+		for i, image_path in tqdm(enumerate(x), file=sys.__stdout__):
+			# self.set_status(str(int(i*100/len(x)) + " %"))
 			img = cv2.imread(image_path)
 			results = self.model(image_path)
 			df = results.pandas().xyxyn[0]
