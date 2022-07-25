@@ -398,6 +398,10 @@ class iou_sub_10_percent(iou_sub_x_percent):
 
 
 class obj_det_evaluator:
+	"""
+		obj_det_evaluator
+		Implementation of the evaluation logic
+	"""
 
 	def evaluate(self, x, y, plot=False):
 		""" Common Evaluation Logic """
