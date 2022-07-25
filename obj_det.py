@@ -463,6 +463,9 @@ class obj_det_evaluator:
 
 
 class model(obj_det_evaluator, pipeline_model):
+	"""
+	Base model class
+	"""
 
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
