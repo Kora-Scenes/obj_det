@@ -582,7 +582,7 @@ class yolov3(obj_det_evaluator, pipeline_model):
 		
 		return results, preds
 
-	def predict(self, x_dat: np.array) -> np.array:
+	def predict(self, x_dat: np.array):
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
 		}
