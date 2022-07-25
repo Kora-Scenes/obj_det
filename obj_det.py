@@ -567,9 +567,9 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 
 class yolov3(obj_det_evaluator, pipeline_model):
 	def load(self):
-		self.weights = 'dependencies/yolov3.weights'
-		self.cfg = 'dependencies/yolov3.cfg'
-		self.coco = 'dependencies/coco.names'
+		self.weights = os.path.join(os.path.expanduser('~'), 'yolov3/yolov3.weights')
+		self.cfg = os.path.join(os.path.expanduser('~'), 'yolov3dependencies/yolov3.cfg')
+		self.coco = os.path.join(os.path.expanduser('~'), 'yolov3dependencies/coco.names')
 		self.coco_classes = None
 		with open(self.coco,'r') as f:
 			self.coco_classes = [line.strip() for line in f.readlines()]
