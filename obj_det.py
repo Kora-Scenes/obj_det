@@ -421,6 +421,7 @@ class obj_det_evaluator:
 			self.set_status(str(int(i*100/len(image_names_list))) + " %")
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
+			
 			for index1, lab in labels.iterrows():
 				largest_iou = 0.0
 				for index2, yolo_bb in detections.iterrows():
@@ -450,6 +451,8 @@ class obj_det_evaluator:
 		recall = np.float64(yolo_metrics['tp']) / float(yolo_metrics['tp'] + yolo_metrics['fn'])
 		f1_score = np.float64(2*prec*recall)/(prec+recall)
 		iou_avg = np.float64(sum(iou_list)) / len(iou_list)
+
+		# Return results as a dict
 		results = {
 			'prec': prec,
 			'recall': recall,
