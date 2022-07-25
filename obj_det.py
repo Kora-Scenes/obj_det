@@ -464,9 +464,6 @@ class obj_det_evaluator:
 			'fn': yolo_metrics['fn']
 		}
 
-		model_name = ((str(self.__class__.__name__).split('_'))[-1]).capitalize()
-
-		print(results)
 		preds1 = preds
 		return results, preds1
 
