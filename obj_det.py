@@ -527,6 +527,7 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 		model_names = list(x.keys())
 		image_paths = x[model_names[0]]["image"].unique()
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
+		print("NMS Ensemble")
 		for i, img_path in enumerate(image_paths):
 			self.set_status(str(int(i*100/len(image_paths))) + " %")
 			boxes = []
