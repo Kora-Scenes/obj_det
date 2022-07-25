@@ -582,13 +582,13 @@ class yolov3(obj_det_evaluator, pipeline_model):
 		
 		return results, preds
 
-	def predict(self, x: np.array) -> np.array:
+	def predict(self, x_dat: np.array) -> np.array:
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
 		}
 		
-		for i, image_path in tqdm(enumerate(x)):
-			self.set_status(str(int(i*100/len(x))) + " %")
+		for i, image_path in tqdm(enumerate(x_dat)):
+			self.set_status(str(int(i*100/len(x_dat))) + " %")
 			image = cv2.imread(image_path)
 			height, width = image.shape[:2]
 			height = image.shape[0]
