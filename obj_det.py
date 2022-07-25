@@ -706,10 +706,7 @@ obj_det_input = pipeline_input("obj_det",
 		'NMS_ensemble': NMS_ensemble
 	}, 
 	p_vizualizer={
-		# 'iou_over_50_percent': iou_over_50_percent,
-		# 'iou_over_90_percent': iou_over_90_percent,
 		'iou_sub_50_percent': iou_sub_50_percent,
-		# 'iou_sub_10_percent': iou_sub_10_percent
 	},
 	p_pipeline_streamlit_visualizer=streamlit_viz)
 
