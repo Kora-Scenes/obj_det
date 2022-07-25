@@ -447,6 +447,7 @@ class obj_det_evaluator:
 				print(labels)
 				print(detections)
 
+		# Compute metrics
 		prec = np.float64(yolo_metrics['tp']) / float(yolo_metrics['tp'] + yolo_metrics['fp'])
 		recall = np.float64(yolo_metrics['tp']) / float(yolo_metrics['tp'] + yolo_metrics['fn'])
 		f1_score = np.float64(2*prec*recall)/(prec+recall)
