@@ -417,6 +417,7 @@ class obj_det_evaluator:
 		print("obj_det_evaluator")
 
 		for i, image_name in tqdm(enumerate(image_names_list), file=sys.__stdout__):
+			# Log percentage progress
 			self.set_status(str(int(i*100/len(image_names_list))) + " %")
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
