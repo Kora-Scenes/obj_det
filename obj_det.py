@@ -403,9 +403,12 @@ class obj_det_evaluator:
 		Implementation of the evaluation logic
 	"""
 
-	def evaluate(self, x, y, plot=False):
+	def evaluate(self, x, y, model_predictions=None, plot=False):
 		# Common Evaluation Logic
-		preds = self.predict(x)
+		if type(model_predictions)!=type(None):
+			preds = self.predict(x, model_predictions=model_predictions)
+		else:
+			preds = self.predict(x)
 		image_names_list = y["name"].unique()
 		iou_list = []
 		iou_thresh = 0.5
@@ -531,10 +534,10 @@ class yolov5x(model):
 
 class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 
-	def predict(self, x: dict):
+	def predict(self, x, model_predictions: dict):
 		# Ensemble predict logic
-		model_names = list(x.keys())
-		image_paths = x[model_names[0]]["image"].unique()
+		model_names = list(model_predictions.keys())
+		image_paths = model_predictions[model_names[0]]["image"].unique()
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
 		print("NMS Ensemble")
 		for i, img_path in enumerate(image_paths):
@@ -542,7 +545,7 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 			boxes = []
 			scores = []
 			for mod_name in model_names:
-				preds = x[mod_name][x[mod_name]["image"]==img_path]
+				preds = model_predictions[mod_name][model_predictions[mod_name]["image"]==img_path]
 				for index, lab in preds.iterrows():
 					boxes.append((
 						lab['xmin'],				# x
@@ -568,8 +571,8 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 		print(nms_res)
 		return nms_res
 
-	def train(self, x, y) -> np.array:
-		results, preds = self.evaluate(x, y)
+	def train(self, x, y, model_predictions) -> np.array:
+		results, preds = self.evaluate(x, y, model_predictions)
 		image_names_list = y["name"].unique()
 		
 		return results, preds
