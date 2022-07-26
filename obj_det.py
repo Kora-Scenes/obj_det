@@ -401,6 +401,8 @@ class obj_det_evaluator:
 	"""
 		obj_det_evaluator
 		Implementation of the evaluation logic
+
+		Evaluates for yolov3, frcnn and all yolov5 sub models
 	"""
 
 	def evaluate(self, x, y, model_predictions=None, plot=False):
@@ -701,11 +703,11 @@ obj_det_input = pipeline_input("obj_det",
 	p_model={
 		'yolov3': yolov3,
 		'frcnn':frcnn,
-		# 'yolov5n': yolov5n,
-		# 'yolov5s': yolov5s,
-		# 'yolov5m': yolov5m,
+		'yolov5n': yolov5n,
+		'yolov5s': yolov5s,
+		'yolov5m': yolov5m,
 		'yolov5l': yolov5l,
-		# 'yolov5x': yolov5x,
+		'yolov5x': yolov5x,
 	}, 
 	p_ensembler={
 		'NMS_ensemble': NMS_ensemble
