@@ -16,10 +16,6 @@ from sklearn.model_selection import train_test_split
 import sys
 sys.path.append('../')
 
-from ML_Ops_Pipeline.pipeline_input import *
-from ML_Ops_Pipeline.constants import *
-
-
 import warnings as wr
 
 wr.filterwarnings("ignore")
@@ -49,7 +45,7 @@ import logging
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
-class KITTI_lemenko_interp(pipeline_dataset_interpreter):
+class KITTI_lemenko_interp:
 
 	def load_calibration(self, calib_file_name):
 		#print(calib)
@@ -165,7 +161,7 @@ class KITTI_lemenko_interp(pipeline_dataset_interpreter):
 		return train_test_split(information, test_size=0.1, random_state=1)
 
 
-class obj_det_interp_1(pipeline_dataset_interpreter):
+class obj_det_interp_1:
 	def load(self) -> None:
 		super().load()
 		train_path=os.path.join(self.input_dir, 'Train/Train/JPEGImages')
@@ -219,7 +215,7 @@ class obj_det_interp_1(pipeline_dataset_interpreter):
 									information['ymax']+=[ymax]
 		return pd.DataFrame(information)
 
-class streamlit_viz(pipeline_streamlit_visualizer):
+class streamlit_viz:
 
 	def visualize(self):
 		self.load_data()
@@ -294,7 +290,7 @@ class streamlit_viz(pipeline_streamlit_visualizer):
 				self.st.image(img)
 			
 
-class iou_viz(pipeline_data_visualizer):
+class iou_viz:
 	def __init__(self) -> None:
 		super().__init__()
 
@@ -423,7 +419,6 @@ class obj_det_evaluator:
 
 		for i, image_name in tqdm(enumerate(image_names_list), file=sys.__stdout__):
 			# Log percentage progress
-			self.set_status(str(int(i*100/len(image_names_list))) + " %")
 			labels = y[y["name"]==image_name]
 			detections = preds[preds["name"]==image_name]
 			
@@ -443,7 +438,11 @@ class obj_det_evaluator:
 				iou_list.append(largest_iou)
 			if plot:
 				image_path = labels["image"].iloc[0]
-				img = cv2.imread(image_path)
+				if type(image_path)==str:
+					img = cv2.imread(image_path)
+				else:
+					img = image_path
+					image_path = "/tmp/image_path.png"
 				for index1, lab in labels.iterrows():
 					img = cv2.rectangle(img, (round(lab['xmin']), round(lab['ymin'])), (round(lab['xmax']), round(lab['ymax'])), (255,0,0),2)
 				for index2, lab in detections.iterrows():
@@ -473,10 +472,13 @@ class obj_det_evaluator:
 		return results, preds1
 
 
-class model(obj_det_evaluator, pipeline_model):
+class model(obj_det_evaluator):
 	"""
 	Base model class
 	"""
+
+	def __init__(self) -> None:
+		self.load()
 
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
@@ -494,15 +496,22 @@ class model(obj_det_evaluator, pipeline_model):
 		predict_results = {
 			'xmin': [], 'ymin':[], 'xmax':[], 'ymax':[], 'confidence': [], 'name':[], 'image':[]
 		}
-		print("model: predict")
-		for i, image_path in tqdm(enumerate(x), file=sys.__stdout__):
-			self.set_status(str(int(i*100/len(x))) + " %")
-			img = cv2.imread(image_path)
-			results = self.model(image_path)
+		# for i, image_path in tqdm(enumerate(x), file=sys.__stdout__):
+		for image_path in x:
+			if type(image_path)==str:
+				img = cv2.imread(image_path)
+				results = self.model(image_path)
+			else:
+				img = image_path
+				image_path = "/tmp/image_path.png"
+				results = self.model(img)
+			
 			df = results.pandas().xyxyn[0]
-			res = df[df["name"]=="person"]
+			# res = df[df["name"]=="person"]
+			res = df
 			for index, yolo_bb in res.iterrows():
-				file_name = image_path.split('/')[-1][0:-4]
+				# file_name = image_path.split('/')[-1][0:-4]
+				file_name = image_path
 				predict_results["xmin"] += [yolo_bb["xmin"]*img.shape[1]]
 				predict_results["ymin"] += [yolo_bb["ymin"]*img.shape[0]]
 				predict_results["xmax"] += [yolo_bb["xmax"]*img.shape[1]]
@@ -534,7 +543,7 @@ class yolov5x(model):
 	def load(self):
 		self.model = torch.hub.load('ultralytics/yolov5', 'yolov5x')
 
-class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
+class NMS_ensemble(obj_det_evaluator):
 
 	def predict(self, x, model_predictions: dict):
 		# Ensemble predict logic
@@ -543,7 +552,6 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 		nms_res = {'xmin':[],'ymin':[],'xmax':[],'ymax':[],'ymax':[], 'confidence':[],'name':[], 'image':[]}
 		print("NMS Ensemble")
 		for i, img_path in enumerate(image_paths):
-			self.set_status(str(int(i*100/len(image_paths))) + " %")
 			boxes = []
 			scores = []
 			for mod_name in model_names:
@@ -580,7 +588,7 @@ class NMS_ensemble(obj_det_evaluator, pipeline_ensembler):
 		return results, preds
 
 
-class yolov3(obj_det_evaluator, pipeline_model):
+class yolov3(obj_det_evaluator):
 	def load(self):
 		self.weights = os.path.join(os.path.expanduser('~'), 'yolov3/yolov3.weights')
 		self.cfg = os.path.join(os.path.expanduser('~'), 'yolov3/yolov3.cfg')
@@ -603,7 +611,6 @@ class yolov3(obj_det_evaluator, pipeline_model):
 		}
 		
 		for i, image_path in tqdm(enumerate(x_dat)):
-			self.set_status(str(int(i*100/len(x_dat))) + " %")
 			image = cv2.imread(image_path)
 			height, width = image.shape[:2]
 			height = image.shape[0]
@@ -656,7 +663,10 @@ class yolov3(obj_det_evaluator, pipeline_model):
 		return predict_results
 	
 
-class frcnn(obj_det_evaluator, pipeline_model):
+class frcnn(obj_det_evaluator):
+	def __init__(self) -> None:
+		self.load()
+
 	def load(self):
 		self.cfg = get_cfg()
 		# self.cfg.MODEL.DEVICE = 'cpu'
@@ -677,7 +687,6 @@ class frcnn(obj_det_evaluator, pipeline_model):
 		}
 		predictor = DefaultPredictor(self.cfg)
 		for i, image_path in tqdm(enumerate(x)):
-			self.set_status(str(int(i*100/len(x))) + " %")
 			img = cv2.imread(image_path)
 			outputs = predictor(img)
 			v = Visualizer(img[:, :, ::-1], MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), scale=1.2)
@@ -695,29 +704,6 @@ class frcnn(obj_det_evaluator, pipeline_model):
 		return predict_results
 
 
-obj_det_input = pipeline_input("obj_det", 
-	p_dataset_interpreter={
-		# 'KITTI_lemenko_interp':KITTI_lemenko_interp,
-		'karthika95-pedestrian-detection': obj_det_interp_1, 
-	}, 
-	p_model={
-		'yolov3': yolov3,
-		'frcnn':frcnn,
-		'yolov5n': yolov5n,
-		'yolov5s': yolov5s,
-		'yolov5m': yolov5m,
-		'yolov5l': yolov5l,
-		'yolov5x': yolov5x,
-	}, 
-	p_ensembler={
-		'NMS_ensemble': NMS_ensemble
-	}, 
-	p_vizualizer={
-		'iou_sub_50_percent': iou_sub_50_percent,
-	},
-	p_pipeline_streamlit_visualizer=streamlit_viz)
-
-exported_pipeline = obj_det_input
 
 #########################################################################
 
